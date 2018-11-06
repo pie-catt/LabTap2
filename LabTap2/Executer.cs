@@ -13,7 +13,9 @@ namespace LabTap2
     {
         private static bool Notify(Exception e)
         {
-            return false;
+            Console.WriteLine("No default contructor for class, skipping...");
+           // Console.WriteLine();
+            return true;
         }
 
         static void Main(string[] args)
@@ -64,9 +66,9 @@ namespace LabTap2
                 {
                 }
 
-              // Console.ReadLine();
+               
             }
-
+            Console.ReadLine();
         }
     }
 }

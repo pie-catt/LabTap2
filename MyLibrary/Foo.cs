@@ -71,4 +71,14 @@ namespace MyLibrary
             Console.WriteLine("M1");
         }
     }
+    public class Foo4
+    {
+
+        [ExecuteMe]
+        public void M1()
+
+        {
+            Console.WriteLine("M1");
+        }
+    }
 }
