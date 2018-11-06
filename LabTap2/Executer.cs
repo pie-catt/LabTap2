@@ -11,7 +11,7 @@ namespace LabTap2
 {
     class Executer
     {
-        //Metodo di log per eccezione costruttore di default
+        //Metodo di log per eccezione costruttore di default non trovato per la classe
         private static bool Notify(Exception e)
         {
             Console.WriteLine("No default contructor for class, skipping...");
