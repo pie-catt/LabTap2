@@ -9,11 +9,11 @@ namespace MyAttribute
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     public class ExecuteMeAttribute : Attribute
     {
-        public object[] args;
+        public object[] AttrArgs;
 
         public ExecuteMeAttribute(params object[] args)
         {
-            this.args = args;
+            AttrArgs = args;
         }
 
     }

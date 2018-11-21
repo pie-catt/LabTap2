@@ -11,64 +11,87 @@ namespace LabTap2
 {
     class Executer
     {
-        //Metodo di log per eccezione costruttore di default non trovato per la classe
-        private static bool Notify(Exception e)
-        {
-            Console.WriteLine("No default contructor for class, skipping...");
-           // Console.WriteLine();
-            return true;
-        }
-
-        static void Main(string[] args)
+       static void Main(string[] args)
         {
             //Carico Dll
             var a = Assembly.LoadFrom("C:\\Users\\User\\source\\repos\\LabTap2\\MyLibrary\\bin\\Debug\\MyLibrary.dll");
-            foreach (var type in a.GetTypes())
+           //Ottengo classi nell'assembly
+            var types = a.GetTypes();
+
+            foreach (var _class in types)
             {
-                //    Console.WriteLine(type.FullName);
-                foreach (var m in type.GetMethods())
+                if (_class.IsClass)
                 {
-                    //  Console.WriteLine(m.ToString());
-                }
-            }
-            //Invoco i metodi nella dll
-
-            var classi = a.GetTypes();
-
-            foreach (var classe in classi)
-            {
-                //Creo istanza del tipo
-                try
-                {
-                    var _classInstance = Activator.CreateInstance(classe);
-
-                    //Recupero metodi della classe
-                    MethodInfo[] methods = classe.GetMethods();
-                    //Per ogni metodo
-                    foreach (var m in methods)
+                    try
                     {
-                        //Recupero custom attributes
-                        var att = m.GetCustomAttributes<ExecuteMeAttribute>();
-                        //Per ogni custom attribute
-                        foreach (var cust in att)
+                        //Creo istanza della classe
+                        //Solleva MissingMethodException se la classe non ha costruttore di default
+                        var classInstance = Activator.CreateInstance(_class);
+
+                        //Ottengo metodi della classe
+                        MethodInfo[] classMethods = _class.GetMethods();
+                        //Per ogni metodo
+                        foreach (var m in classMethods)
                         {
-                            //Recupero parametro attribute
-                            var par = cust.args;
-                            //Invoco il metodo con quel parametro
-                            m.Invoke(_classInstance, par);
+                            //Ottengo custom attributes del metodo
+                            var customAttributes = m.GetCustomAttributes<ExecuteMeAttribute>();
+                            //Per ogni custom attribute
+                            foreach (var attribute in customAttributes)
+                            {
+                                //Recupero parametri
+                                var par = attribute.AttrArgs;
+                                //Controllo correttezza parametri
+                                ParametersCheck(m, m.GetParameters(), par);
+                                //Invoco il metodo con quei parametri
+                                m.Invoke(classInstance, par);
 
+                            }
                         }
-                        //    Console.WriteLine(m.ToString());
                     }
-                }
 
-                catch (System.MissingMethodException e) when (Notify(e))
-                {
-                }
+                    //Costruttore di default non presente
+                    catch (MissingMethodException e)
+                    {
+                        Console.WriteLine("Cotruttore di default non presente per la classe, " +
+                                          "passo alla classe successiva");
+                    }
 
-               
+                    //Errore nei parametri
+                    catch (ParametersErrorException e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+
+                }
+                Console.ReadLine();
             }
-            Console.ReadLine();
+        }
+       
+        //Metodo controllo correttezza parametri da Custom Attribute a Metodo invocato
+        private static void ParametersCheck(MethodInfo m, ParameterInfo[] attributePar, object[] methodPar)
+        {
+            if (attributePar.Length != methodPar.Length)
+                throw new ParametersErrorException("Errore parametri per il metodo " 
+                    + m.DeclaringType + "." + m.Name);
+
+            int i = 0;
+            foreach (var p in attributePar)
+            {
+                if (p.ParameterType != methodPar[i].GetType())
+                    throw new ParametersErrorException("Errore parametri per il metodo "
+                        + m.DeclaringType + "." + m.Name);
+                i++;
+            }
+
+           }
+    }
+
+    public class ParametersErrorException : Exception
+    {
+        public ParametersErrorException(string message)
+            : base(message)
+        {
+
         }
     }
 }
