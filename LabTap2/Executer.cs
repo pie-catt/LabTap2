@@ -24,26 +24,25 @@ namespace LabTap2
                 {
                     try
                     {
-                        //Creo istanza della classe
-                        //Solleva MissingMethodException se la classe non ha costruttore di default
-                        var classInstance = Activator.CreateInstance(_class);
-
                         //Ottengo metodi della classe
                         MethodInfo[] classMethods = _class.GetMethods();
                         //Per ogni metodo
-                        foreach (var m in classMethods)
+                        foreach (var method in classMethods)
                         {
                             //Ottengo custom attributes del metodo
-                            var customAttributes = m.GetCustomAttributes<ExecuteMeAttribute>();
+                            var customAttributes = method.GetCustomAttributes<ExecuteMeAttribute>();
                             //Per ogni custom attribute
                             foreach (var attribute in customAttributes)
                             {
-                                //Recupero parametri
-                                var par = attribute.AttrArgs;
+                                //Recupero parametri del custom attribute
+                                var attributeParameters = attribute.AttrArgs;
                                 //Controllo correttezza parametri
-                                ParametersCheck(m, m.GetParameters(), par);
+                                ParametersCheck(method, attributeParameters);
+                                //Creo istanza della classe
+                                //Solleva MissingMethodException se la classe non ha costruttore di default
+                                var classInstance = Activator.CreateInstance(_class);
                                 //Invoco il metodo con quei parametri
-                                m.Invoke(classInstance, par);
+                                method.Invoke(classInstance, attributeParameters);
 
                             }
                         }
@@ -68,16 +67,17 @@ namespace LabTap2
         }
        
         //Metodo controllo correttezza parametri da Custom Attribute a Metodo invocato
-        private static void ParametersCheck(MethodInfo m, ParameterInfo[] attributePar, object[] methodPar)
+        private static void ParametersCheck(MethodInfo m, object[] attributePar)
         {
+            ParameterInfo[] methodPar = m.GetParameters();
             if (attributePar.Length != methodPar.Length)
                 throw new ParametersErrorException("Errore parametri per il metodo " 
                     + m.DeclaringType + "." + m.Name);
 
             int i = 0;
-            foreach (var p in attributePar)
+            foreach (var p in methodPar)
             {
-                if (p.ParameterType != methodPar[i].GetType())
+                if (p.ParameterType != attributePar[i].GetType())
                     throw new ParametersErrorException("Errore parametri per il metodo "
                         + m.DeclaringType + "." + m.Name);
                 i++;
